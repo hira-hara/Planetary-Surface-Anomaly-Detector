@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mars Anomaly Detector</title>
+    <style>
+        body {
+            background-color: #0b0d17;
+            color: #d0d6e0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: #1c1f2e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid #2d3446;
+        }
+        h1 { color: #e86e57; margin-bottom: 20px; }
+        .upload-box {
+            border: 2px dashed #4a5568;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .upload-box:hover { border-color: #e86e57; }
+        input[type="file"] { display: none; }
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #2d3446;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #e86e57;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #d64c3b; }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #252a3d;
+            border-radius: 8px;
+            border-left: 5px solid #e86e57;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚀 Mars Rover Analysis</h1>
+        <p>Upload an image from the Perseverance/Curiosity feed.</p>
+        
+        <form method="post" enctype="multipart/form-data">
+            <div class="upload-box">
+                <label for="file-upload" class="custom-file-upload">
+                    📂 Select Image
+                </label>
+                <input id="file-upload" type="file" name="file" accept="image/*" onchange="form.submit()">
+            </div>
+        </form>
+
+        {% if prediction %}
+        <div class="result-box">
+            <h2>Detected: <span style="color: #e86e57;">{{ prediction }}</span></h2>
+            <p>Confidence: {{ confidence }}</p>
+            {% if img_url %}
+            <img src="{{ img_url }}" alt="Analyzed Mars Surface">
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>
