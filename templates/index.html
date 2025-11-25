@@ -3,96 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mars Anomaly Detector</title>
+    <title>Mars Rover Image Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+    
     <style>
+        :root {
+            --primary: #e86e57;
+            --bg-dark: #0b0d17;
+            --panel-bg: #151823;
+            --text-light: #d0d6e0;
+        }
+
         body {
-            background-color: #0b0d17;
-            color: #d0d6e0;
-            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
+            overflow: hidden;
         }
-        .container {
-            text-align: center;
-            background: #1c1f2e;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            max-width: 500px;
-            width: 100%;
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 90vw;
+            max-width: 1200px;
+            height: 85vh;
+            background: var(--panel-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
             border: 1px solid #2d3446;
         }
-        h1 { color: #e86e57; margin-bottom: 20px; }
-        .upload-box {
+
+        /* --- LEFT SIDE --- */
+        .control-panel {
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid #2d3446;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(232, 110, 87, 0.3);
+        }
+
+        p.subtitle { color: #8a9bb7; margin-bottom: 30px; }
+
+        /* Upload Zone - Default State */
+        .upload-zone {
             border: 2px dashed #4a5568;
-            padding: 30px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
         }
-        .upload-box:hover { border-color: #e86e57; }
-        input[type="file"] { display: none; }
-        .custom-file-upload {
-            display: inline-block;
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #2d3446;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #e86e57;
-            color: white;
+
+        /* State when result is shown (Clean Look) */
+        .upload-zone.has-result {
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 16px;
+            background: transparent;
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(232, 110, 87, 0.05);
+            transform: scale(1.02);
+        }
+
+        /* Elements to Hide/Show */
+        .upload-content { display: flex; flex-direction: column; align-items: center; }
+        .result-content { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.5s ease; }
+
+        .upload-icon { font-size: 3rem; margin-bottom: 15px; color: #4a5568; }
+
+        .custom-file-upload {
+            background: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(232, 110, 87, 0.3);
+        }
+
+        .custom-file-upload:hover { background: #d64c3b; transform: translateY(-2px); }
+        input[type="file"] { display: none; }
+
+        /* Result Styling */
+        #resultImage {
+            max-height: 220px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(232, 110, 87, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .result-tag {
+            background: rgba(232, 110, 87, 0.2);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .confidence-bar-bg {
+            width: 80%;
+            height: 6px;
+            background: #2d3446;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .confidence-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 1s ease;
+        }
+
+        .analyze-again-btn {
+            background: transparent;
+            border: 1px solid #4a5568;
+            color: #8a9bb7;
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin-top: 25px;
             cursor: pointer;
             transition: 0.3s;
-            margin-top: 10px;
         }
-        button:hover { background-color: #d64c3b; }
-        .result-box {
+
+        .analyze-again-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* --- RIGHT SIDE --- */
+        .visual-panel {
+            position: relative;
+            background: radial-gradient(circle at center, #1f2333 0%, #0b0d17 100%);
+        }
+
+        model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+        .scanlines {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.2) 3px);
+            pointer-events: none; z-index: 10;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #2d3446;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+            display: none;
             margin-top: 20px;
-            padding: 15px;
-            background: #252a3d;
-            border-radius: 8px;
-            border-left: 5px solid #e86e57;
         }
-        img {
-            max-width: 100%;
-            border-radius: 6px;
-            margin-top: 15px;
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 900px) {
+            .main-container { grid-template-columns: 1fr; height: auto; }
+            .visual-panel { height: 350px; order: -1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>🚀 Mars Rover Analysis</h1>
-        <p>Upload an image from the Perseverance/Curiosity feed.</p>
-        
-        <form method="post" enctype="multipart/form-data">
-            <div class="upload-box">
-                <label for="file-upload" class="custom-file-upload">
-                    📂 Select Image
-                </label>
-                <input id="file-upload" type="file" name="file" accept="image/*" onchange="form.submit()">
-            </div>
-        </form>
+    <div class="main-container">
+        <!-- LEFT: Controls -->
+        <div class="control-panel">
+            <h1>Mars Rover Image Analysis</h1>
+            <p class="subtitle">Upload feed imagery for terrain classification.</p>
+            
+            <div class="upload-zone" id="dropZone">
+                
+                <!-- 1. UPLOAD STATE -->
+                <div class="upload-content" id="uploadContent">
+                    <div class="upload-icon">🪐</div>
+                    <p style="color: #8a9bb7; margin: 0;">Drop image here</p>
+                    <p style="color: #4a5568; font-size: 0.8rem;">or</p>
+                    <label for="file-upload" class="custom-file-upload">Select Image</label>
+                    <input id="file-upload" type="file" name="file" accept="image/*">
+                </div>
 
-        {% if prediction %}
-        <div class="result-box">
-            <h2>Detected: <span style="color: #e86e57;">{{ prediction }}</span></h2>
-            <p>Confidence: {{ confidence }}</p>
-            {% if img_url %}
-            <img src="{{ img_url }}" alt="Analyzed Mars Surface">
-            {% endif %}
+                <!-- LOADING STATE -->
+                <div class="loader" id="loader"></div>
+
+                <!-- 2. RESULT STATE -->
+                <div class="result-content" id="resultContent">
+                    <img id="resultImage" src="" alt="Analyzed Mars">
+                    
+                    <div class="result-tag" id="predictionText">DETECTED: ROCK</div>
+                    <div style="font-size: 0.9rem; color: #8a9bb7;" id="confidenceText">Confidence: 0%</div>
+                    
+                    <div class="confidence-bar-bg">
+                        <div class="confidence-bar-fill" id="confidenceBar"></div>
+                    </div>
+
+                    <button class="analyze-again-btn" onclick="resetApp()">Analyze Another Image</button>
+                </div>
+
+            </div>
         </div>
-        {% endif %}
+
+        <!-- RIGHT: 3D Model -->
+        <div class="visual-panel">
+            <div class="scanlines"></div>
+            <!-- Ensure your .gltf or .glb file is in the 'static' folder -->
+            <model-viewer 
+                src="{{ url_for('static', filename='curiosity_rover.glb') }}" 
+                poster="https://mars.nasa.gov/system/resources/detail_files/25042_PIA23721-web.jpg"
+                alt="3D Model of Curiosity Rover"
+                auto-rotate camera-controls shadow-intensity="1" 
+                environment-image="neutral" exposure="1.2"
+                camera-orbit="45deg 55deg 2.5m">
+            </model-viewer>
+        </div>
     </div>
 
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('file-upload');
+        const uploadContent = document.getElementById('uploadContent');
+        const resultContent = document.getElementById('resultContent');
+        const resultImage = document.getElementById('resultImage');
+        const predictionText = document.getElementById('predictionText');
+        const confidenceText = document.getElementById('confidenceText');
+        const confidenceBar = document.getElementById('confidenceBar');
+        const loader = document.getElementById('loader');
+
+        // Drag & Drop Styling
+        ['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, (ev) => {
+            ev.preventDefault();
+            dropZone.classList.add('dragover');
+        }));
+
+        ['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, (ev) => {
+            ev.preventDefault();
+            dropZone.classList.remove('dragover');
+        }));
+
+        // Handle File Drop
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if(files.length) handleFile(files[0]);
+        });
+
+        // Handle File Select
+        fileInput.addEventListener('change', () => {
+            if(fileInput.files.length) handleFile(fileInput.files[0]);
+        });
+
+        function handleFile(file) {
+            // Show Loader, Hide Upload
+            uploadContent.style.display = 'none';
+            loader.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // AJAX Request to Backend
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+                
+                if(data.error) {
+                    alert(data.error);
+                    resetApp();
+                    return;
+                }
+
+                // Show Results
+                showResult(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loader.style.display = 'none';
+                resetApp();
+            });
+        }
+
+        function showResult(data) {
+            // Remove dashed border styling
+            dropZone.classList.add('has-result');
+            
+            // Populate Data
+            resultImage.src = data.image_url;
+            predictionText.textContent = "DETECTED: " + data.prediction.toUpperCase();
+            confidenceText.textContent = "Confidence: " + data.confidence;
+            confidenceBar.style.width = data.confidence_score + "%";
+
+            // Switch Views
+            resultContent.style.display = 'flex';
+        }
+
+        function resetApp() {
+            // Restore Border
+            dropZone.classList.remove('has-result');
+            
+            // Switch Views
+            resultContent.style.display = 'none';
+            uploadContent.style.display = 'flex';
+            
+            // Clear Input
+            fileInput.value = '';
+            confidenceBar.style.width = '0%';
+        }
+    </script>
 </body>
 </html>
