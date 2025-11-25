@@ -1,1 +1,4 @@
-flask torch torchvision pillow
+flask 
+torch 
+torchvision 
+pillow
