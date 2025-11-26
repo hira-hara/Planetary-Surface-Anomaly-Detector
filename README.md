@@ -12,7 +12,7 @@ To assist Mars Rover navigation by automatically classifying terrain types from 
 
 - Web App: Flask (Python), HTML/CSS
 
-- Dataset: NASA Curiosity Rover Data Collection Set
+- Dataset: [NASA Curiosity Rover Data Collection Set](https://www.kaggle.com/datasets/harshitstark/nasas-curiosity-rover-data-collection)
 
 ## To Run Locally
 
