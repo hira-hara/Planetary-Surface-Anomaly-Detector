@@ -50,3 +50,7 @@ app.py: Main Flask application.
 mars_model.pth: Trained PyTorch model weights.
 
 templates/: HTML frontend files.
+
+## Notes
+
+Might not work for Mac users since port is 5000, if so please change to 5001
